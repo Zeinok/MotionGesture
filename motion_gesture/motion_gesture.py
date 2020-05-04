@@ -14,16 +14,14 @@ ap.add_argument("-f", "--file", type=str, default=0, help="file")
 args = vars(ap.parse_args())
 camera = cv2.VideoCapture(args["file"])
 face_cascade = cv2.CascadeClassifier("haarcascade_frontalface_alt.xml")
-diffFrame = None
 previousFrame = None
-counter = 0
 while True:
 
     grabbed, frame = camera.read()
     frame = imutils.resize(frame, width=500)
     frame = cv2.flip(frame, 1)
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-    noblur_gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    faces = face_cascade.detectMultiScale(gray, 1.1, 3, 0)
     gray = cv2.GaussianBlur(gray, (args["blur"], args["blur"]), 0)
     # if the first frame is None, initialize it
     if previousFrame is None:
@@ -60,7 +58,6 @@ while True:
             2,
         )
 
-    faces = face_cascade.detectMultiScale(noblur_gray, 1.1, 3, 0)
     for (x, y, w, h) in faces:
         frame = cv2.rectangle(frame, (x, y), (x + w, y + h), (255, 0, 0), 2)
     cv2.imshow("Frame", frame)
