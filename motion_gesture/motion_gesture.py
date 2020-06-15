@@ -2,11 +2,16 @@
 import argparse
 import time
 import logging
+from os import name as os_name
 
 from cv2 import cv2
 import imutils
 
 from direction import Direction
+if os_name == "nt":
+    from nt_window_action import WindowAction
+else:
+    from kde_window_action import WindowAction
 
 ap = argparse.ArgumentParser()
 ap.add_argument("-i", "--min-area", type=int, default=9000, help="minimum area size")
@@ -15,7 +20,7 @@ ap.add_argument("-b", "--blur", type=int, default=31, help="blur")
 ap.add_argument("-t", "--threshold", type=int, default=10, help="threshold")
 ap.add_argument("-d", "--dilation", type=int, default=2, help="dilation")
 ap.add_argument("-f", "--file", type=str, default=0, help="file")
-ap.add_argument("-w", "--wait", type=int, default=100, help="ms to wait")
+ap.add_argument("-w", "--wait", type=int, default=300, help="ms to wait")
 ap.add_argument("-l", "--log", type=int, default=20, help="log level")
 args = vars(ap.parse_args())
 camera = cv2.VideoCapture(args["file"])
@@ -111,7 +116,16 @@ while True:
     
     if time.time() * 1000 - last_movement > args["wait"]:
         if len(direction_log) > 0:
-            logging.info("Result: {}".format(max(direction_log, key=direction_log.count)))
+            direction_result = max(direction_log, key=direction_log.count)
+            logging.info("Result: {}".format(direction_result))
+            if direction_result==Direction.Right:
+                WindowAction.previousDesktop()
+            if direction_result==Direction.Left:
+                WindowAction.nextDesktop()
+            if direction_result==Direction.Up:
+                WindowAction.maximizeWindow()
+            if direction_result==Direction.Down:
+                WindowAction.minimizeWindow()
             # for e in Direction:
             #     logging.info("Result: {} {}x".format(e, direction_log.count(e)))
             direction_log.clear()
